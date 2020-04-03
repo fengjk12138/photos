@@ -1,0 +1,112 @@
+{
+    "log" : {
+      "access": "/var/log/v2ray/access.log",
+      "error": "/var/log/v2ray/error.log",
+      "loglevel": "warning"
+    },
+    "inbounds": [
+      {
+        "port": 80, //推荐80端口，更好地迷惑防火墙（好吧实际上并没有什么卵用
+        "protocol": "vmess",
+        "settings": {
+          "clients": [
+            {
+              "id": "57212460-0506-4b51-af65-2003aa113203",
+              "level": 1,
+              "alterId": 64
+            }
+          ]
+        },
+        "streamSettings": {
+            "network": "mkcp", //此处的 mkcp 也可写成 kcp，两种写法是起同样的效果
+            "kcpSettings": {
+              "uplinkCapacity": 7,
+              "downlinkCapacity": 100,
+              "congestion": true,
+              "header": { // header 这一项是关于数据包伪装的设置，可自定义合理的内容，但要确保服务器与客户端一致
+                "type": "srtp"
+              }
+            }
+          }
+      },
+      {
+            "port": 23232,
+            "protocol": "vmess",
+            "settings": {
+              "clients": [
+                {
+                  "id": "b9d0fb0f-644c-4d35-ad59-914fa579d424",
+                  "level": 1,
+                  "alterId": 64
+                }
+              ],
+              "detour": {        
+                "to": "dynamicPort"   
+              }
+            },
+            "streamSettings": {
+              "network": "kcp",
+              "kcpSettings": {
+                "uplinkCapacity": 7,
+                "downlinkCapacity": 100,
+                "congestion": true,
+                "header": { // header 这一项是关于数据包伪装的设置，可自定义合理的内容，但要确保服务器与客户端一致
+                  "type": "srtp"
+                }
+              }
+            }
+          },
+          {
+            "protocol": "vmess",
+            "port": "10000-20000", // 端口范围
+            "tag": "dynamicPort",       
+            "settings": {
+              "default": {
+                "level": 1,
+                "alterId": 32
+              }
+            },
+            "allocate": {            // 分配模式
+              "strategy": "random",  // 随机开启
+              "concurrency": 2,      // 同时开放两个端口
+              "refresh": 10           // 每三分钟刷新一次
+            },
+            "streamSettings": {
+              "network": "kcp",
+              "kcpSettings": {
+                "uplinkCapacity": 7,
+                "downlinkCapacity": 100,
+                "congestion": true,
+                "header": { // header 这一项是关于数据包伪装的设置，可自定义合理的内容，但要确保服务器与客户端一致
+                  "type": "srtp"
+                }
+              }
+            }
+          }
+        ],
+    "outbounds": [
+      {
+        "protocol": "freedom",
+        "settings": {}
+      },
+      {
+        "protocol": "blackhole",
+        "settings": {},
+        "tag": "blocked"
+      }
+    ],
+    "routing": {
+      "strategy": "rules",
+      "settings": {
+        "rules": [
+          {
+            "type": "field",
+            "ip": [
+              "geoip:private"
+            ],
+            "outboundTag": "blocked"
+          }
+        ]
+      }
+    }
+  }
